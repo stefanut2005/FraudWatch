@@ -2,17 +2,19 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from sqlalchemy import create_engine, text
 from pydantic import BaseModel
+import os # NOU: Necesităm OS pentru a citi variabilele de mediu
 import pandas as pd
 import numpy as np
 import pickle
 
-# --- Configurare Conexiune Bază de Date ---
-# Setările trebuie să se potrivească cu fișierele din 1_database
-DB_USER = 'user'
-DB_PASSWORD = 'pass123'
-DB_HOST = 'localhost' # Se conectează la containerul Docker
-DB_PORT = '5432'
-DB_NAME = 'fraud_detection_db'
+# --- Configurare Conexiune Bază de Date (FIXED) ---
+# Citim variabilele setate în docker-compose.yml, unde PG_HOST este 'db'
+DB_USER = os.environ.get('PG_USER', 'user')
+DB_PASSWORD = os.environ.get('PG_PASS', 'pass123')
+DB_HOST = os.environ.get('PG_HOST', 'localhost')  # Citim 'db' din container
+DB_PORT = os.environ.get('PG_PORT', '5432')
+DB_NAME = os.environ.get('PG_DB', 'fraud_detection_db')
+
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # --- Inițializare ---
@@ -26,11 +28,18 @@ try:
     with open('../label_encoders.pkl', 'rb') as encoders_file:
         label_encoders = pickle.load(encoders_file)
     engine = create_engine(DATABASE_URL)
+    # Putem adauga un log sa vedem adresa reala in log-urile Docker
+    print(f"Server MCP: Încercare conexiune la DB: {DB_HOST}:{DB_PORT}") 
+    with engine.connect() as conn:
+        conn.execute(text("SELECT 1"))
     print("Server MCP: Conectat cu succes la PostgreSQL.")
 except Exception as e:
     print(f"EROARE: Serverul MCP nu s-a putut conecta la PostgreSQL: {e}")
+    # Aruncăm eroarea în log-ul containerului pentru debugging
+    import traceback
+    traceback.print_exc()
     engine = None
-
+    
 # --- Modelul de Date (ce așteptăm să primim) ---
 class QueryRequest(BaseModel):
     sql_query: str
@@ -157,5 +166,5 @@ def read_root():
 
 # --- Pornirea Serverului ---
 if __name__ == "__main__":
-    print("Se pornește Serverul MCP pe http://127.0.0.1:8000")
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    # Folosim PG_HOST ca host, dar pentru uvicorn, trebuie să ascultăm pe 0.0.0.0 în container
+    uvicorn.run(app, host="0.0.0.0", port=8000)

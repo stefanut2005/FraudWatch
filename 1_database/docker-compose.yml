@@ -35,7 +35,7 @@ services:
       - ..:/app:cached
     working_dir: /app
     command: >
-      sh -c "pip install --no-cache-dir fastapi uvicorn pandas sqlalchemy psycopg2-binary python-dotenv boto3 tabulate && uvicorn db.query_server:app --host 0.0.0.0 --port 8000"
+      sh -c "pip install --no-cache-dir fastapi uvicorn pandas sqlalchemy psycopg2-binary python-dotenv boto3 tabulate && uvicorn 3_ai_agent.mcp_server:app --host 0.0.0.0 --port 8000"
     ports:
       # Map container port 8000 to host 8001 to avoid conflicts with any local service on 8000
       - "8001:8000"

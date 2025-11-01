@@ -1,64 +1,69 @@
 #!/bin/bash
+# Noul run.sh: Pornește PostgreSQL, Query Server (pe 8001) și Simulatorul Live
 
 # --- Configurare ---
 # Oprește scriptul imediat dacă o comandă eșuează
 set -e
 
 echo "============================================="
-echo "=== START SCRIPT: PASUL 1 (Baza de Date) ==="
+echo "=== START SCRIPT: PORNIRE TOTALĂ SISTEM ==="
 echo "============================================="
+
+# --- Găsește directorul principal ---
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # --- 1. Verificarea și Pornirea Serviciului Docker ---
 echo "INFO: Se verifică statusul serviciului Docker..."
-
-# Încearcă să pornească serviciul. 
-# Mai întâi, îl demascăm, pentru a rezolva eroarea 'masked'.
 sudo systemctl unmask docker.service > /dev/null 2>&1 || true
 sudo systemctl start docker
-
-# Așteaptă 2 secunde și verifică dacă rulează
 sleep 2
 if ! sudo docker ps > /dev/null; then
     echo "EROARE: Serviciul Docker (daemon) nu rulează."
-    echo "Te rog instalează Docker și rulează: sudo systemctl start docker"
     exit 1
 fi
 echo "INFO: Serviciul Docker rulează."
 
-
-# --- 2. Navigarea la Directorul Bazei de Date ---
-# Găsește directorul în care se află acest script
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+# --- 2. Navigarea la Directorul Bazei de Date (Contine docker-compose.yml) ---
 DB_DIR="$SCRIPT_DIR/1_database"
-
-if [ ! -d "$DB_DIR" ]; then
-    echo "EROARE: Nu am găsit directorul '1_database'."
-    exit 1
-fi
-
 cd "$DB_DIR"
 echo "INFO: Se lucrează în directorul: $(pwd)"
 
-
 # --- 3. Oprirea și Ștergerea Containerelor Vechi ---
-echo "INFO: Se opresc și se șterg containerele vechi (dacă există)..."
-# Folosim 'docker compose' (care citește docker-compose.yml)
+echo "INFO: Se opresc și se șterg containerele vechi (DB + Query Server)..."
 sudo docker compose down -v
 
-
-# --- 4. Pornirea Containerului Bazei de Date ---
-echo "INFO: Se pornește noul container PostgreSQL..."
+# --- 4. Pornirea Containerelor (DB & MCP Server) ---
+echo "INFO: Se pornește PostgreSQL (DB) și Query Server (MCP) [accesibil la portul 8001]..."
+# Această comandă pornește AMBELE servicii (DB și query-server)
 sudo docker compose up -d
 
-echo "INFO: Se așteaptă 10 secunde ca baza de date să pornească..."
-sleep 10
+echo "INFO: Se așteaptă ca baza de date să pornească (15 secunde)..."
+sleep 15
 
+# --- 5. Încărcarea Datelor (FULL LOAD) ---
+echo "INFO: Se rulează scriptul 'load_data.py' pentru a încărca CSV-ul (FULL LOAD)..."
+# Argumentul --full forțează încărcarea întregului fișier
+python3 load_data.py --full
+echo "INFO: Pasul 1 (Baza de Date) este finalizat."
 
-# --- 5. Încărcarea Datelor ---
-echo "INFO: Se rulează scriptul 'load_data.py' pentru a încărca CSV-ul..."
-python3 load_data.py
+# --- 6. Pornirea Simulatorului Live (Rulând pe Host) ---
+SIM_DIR="$SCRIPT_DIR/5_live_simulator"
+if [ ! -f "$SIM_DIR/simulator.py" ]; then
+    echo "WARN: Nu am găsit '5_live_simulator/simulator.py'. Se sare peste."
+else
+    cd "$SIM_DIR"
+    echo "INFO: Se pornește Simulatorul Live (Pasul 5) în fundal..."
+    # Pornim cu nohup pentru a rula în fundal
+    nohup python3 simulator.py > simulator.log 2>&1 & echo $! > simulator.pid
+    sleep 1
+    echo "INFO: Simulatorul rulează în fundal (PID: $(cat simulator.pid))."
+    echo "      (Vezi log-ul în '5_live_simulator/simulator.log')"
+fi
 
-
+# --- 7. Mesaj Final ---
+cd "$SCRIPT_DIR"
 echo "============================================="
-echo "=== SUCCES: PASUL 1 ESTE FINALIZAT! ==="
+echo "=== SUCCES: TOATE SERVICIILE AU PORNIT! ==="
 echo "============================================="
+echo "Serverul MCP (Query Server) este accesibil la: http://127.0.0.1:8001/run_sql"
+echo "Pentru a opri totul, rulează: ./stop.sh"
