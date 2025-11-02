@@ -935,19 +935,19 @@
     ]
   },
   "packageFolders": {
-    "/home/user/.nuget/packages/": {}
+    "/home/pia/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/FraudDashboard.csproj",
+      "projectUniqueName": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/FraudDashboard.csproj",
       "projectName": "FraudDashboard",
-      "projectPath": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/FraudDashboard.csproj",
-      "packagesPath": "/home/user/.nuget/packages/",
-      "outputPath": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/obj/",
+      "projectPath": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/FraudDashboard.csproj",
+      "packagesPath": "/home/pia/.nuget/packages/",
+      "outputPath": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/user/.nuget/NuGet/NuGet.Config"
+        "/home/pia/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -965,7 +965,13 @@
         "warnAsError": [
           "NU1605"
         ]
-      }
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net8.0": {
@@ -987,6 +993,20 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.linux-x64",
+            "version": "[8.0.15, 8.0.15]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[8.0.15, 8.0.15]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -995,7 +1015,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.121/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.203/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -19,13 +19,16 @@ function appendBubble(text, who) {
 
     if (who === "user") {
         bubble.classList.add("from-user");
+        bubble.textContent = text;
     } else if (who === "ai") {
         bubble.classList.add("from-ai");
+        // Allow HTML for formatted AI responses
+        bubble.innerHTML = text;
     } else if (who === "thinking") {
         bubble.classList.add("from-ai", "thinking");
+        bubble.textContent = text;
     }
 
-    bubble.textContent = text;
     chatMessages.appendChild(bubble);
 
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -80,29 +83,25 @@ async function callAiBackend(questionText) {
         const data = await resp.json();
         // data = { sql, rows, summary }
 
-        let finalText = "";
+        let finalHTML = "";
 
+        // Only display the summary - ignore sql and rows
         if (data.summary) {
-            finalText += data.summary.trim() + "\n\n";
+            // Clean summary: remove any mentions of SQL, queries, or technical terms that might have leaked through
+            let cleanSummary = data.summary.trim();
+            // Remove common SQL-related phrases that LLM might have included
+            cleanSummary = cleanSummary.replace(/SQL executed[:\s]*/gi, '');
+            cleanSummary = cleanSummary.replace(/The query[^.]*\./gi, '');
+            cleanSummary = cleanSummary.replace(/SELECT[^.]*\./gi, '');
+            cleanSummary = cleanSummary.replace(/query[^.]*executed[^.]*\./gi, '');
+            cleanSummary = cleanSummary.replace(/\n\n\n+/g, '\n\n'); // Clean up extra newlines
+            
+            finalHTML += "<div class='ai-summary'>" + escapeHtml(cleanSummary) + "</div>";
+        } else {
+            finalHTML = "<div class='ai-error'>(No answer returned)</div>";
         }
 
-        if (data.rows && data.rows.length > 0) {
-            finalText += "Sample results:\n";
-            data.rows.slice(0, 5).forEach(rowObj => {
-                finalText += "• " + JSON.stringify(rowObj) + "\n";
-            });
-            finalText += "\n";
-        }
-
-        if (data.sql) {
-            finalText += "SQL executed:\n" + data.sql;
-        }
-
-        if (!finalText.trim()) {
-            finalText = "(No answer returned)";
-        }
-
-        return { ok: true, text: finalText };
+        return { ok: true, text: finalHTML };
 
     } catch (err) {
         return { error: "Request failed: " + err.message };
@@ -149,9 +148,17 @@ if (chatForm) {
         if (!text) return;
 
         appendUserChat(text);
-        await sendChat(text);
+        // Clear the input immediately after submitting so the UI feels responsive.
         chatText.value = "";
+        await sendChat(text);
     });
+}
+
+// Helper to escape HTML for security
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // expose for other scripts (like askAiWhy in modal)

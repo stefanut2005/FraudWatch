@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Y1EtUQqZJ9CYTu6rlZ/lOdKKCSnxpRwMY3BVPgbYsIk=",
+  "Hash": "q1oWxrCp4y2JLJzJzlmyQaH2uTLLH4d2912tbw/pWsE=",
   "Source": "FraudDashboard",
   "BasePath": "_content/FraudDashboard",
   "Mode": "Default",
@@ -10,68 +10,322 @@
     {
       "Name": "FraudDashboard/wwwroot",
       "Source": "FraudDashboard",
-      "ContentRoot": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/",
+      "ContentRoot": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/",
       "BasePath": "_content/FraudDashboard",
       "Pattern": "**"
     }
   ],
   "Assets": [
     {
-      "Identity": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/css/site.css",
+      "Identity": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/css/site.css",
       "SourceId": "FraudDashboard",
       "SourceType": "Discovered",
-      "ContentRoot": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/",
+      "ContentRoot": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/",
       "BasePath": "_content/FraudDashboard",
-      "RelativePath": "css/site.css",
+      "RelativePath": "css/site#[.{fingerprint}]?.css",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeBehavior": "",
       "AssetMergeSource": "",
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
+      "Fingerprint": "suvj3jguy5",
+      "Integrity": "/Ego6LshdO7nH3zxxEVLDTMtGUEOEFP0RwbVF7CJEno=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/css/site.css"
     },
     {
-      "Identity": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/chat.js",
+      "Identity": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/chat.js",
       "SourceId": "FraudDashboard",
       "SourceType": "Discovered",
-      "ContentRoot": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/",
+      "ContentRoot": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/",
       "BasePath": "_content/FraudDashboard",
-      "RelativePath": "js/chat.js",
+      "RelativePath": "js/chat#[.{fingerprint}]?.js",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeBehavior": "",
       "AssetMergeSource": "",
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
+      "Fingerprint": "t9wh4tm6lp",
+      "Integrity": "obXxdFQfAIgGFHlaHXEkVnD+duFs1NXfU4Fuqq25qoM=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/js/chat.js"
     },
     {
-      "Identity": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/dashboard.js",
+      "Identity": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/dashboard.js",
       "SourceId": "FraudDashboard",
       "SourceType": "Discovered",
-      "ContentRoot": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/",
+      "ContentRoot": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/",
       "BasePath": "_content/FraudDashboard",
-      "RelativePath": "js/dashboard.js",
+      "RelativePath": "js/dashboard#[.{fingerprint}]?.js",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeBehavior": "",
       "AssetMergeSource": "",
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
+      "Fingerprint": "aqcpdgvade",
+      "Integrity": "sumvV+Vpo/9nXX4NN7UBl23cT8NyzsIWOhuwKNPi4CA=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/js/dashboard.js"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "css/site.css",
+      "AssetFile": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/css/site.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "20864"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"/Ego6LshdO7nH3zxxEVLDTMtGUEOEFP0RwbVF7CJEno=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 02 Nov 2025 02:16:10 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-/Ego6LshdO7nH3zxxEVLDTMtGUEOEFP0RwbVF7CJEno="
+        }
+      ]
+    },
+    {
+      "Route": "css/site.suvj3jguy5.css",
+      "AssetFile": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/css/site.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "20864"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"/Ego6LshdO7nH3zxxEVLDTMtGUEOEFP0RwbVF7CJEno=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 02 Nov 2025 02:16:10 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "suvj3jguy5"
+        },
+        {
+          "Name": "label",
+          "Value": "css/site.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-/Ego6LshdO7nH3zxxEVLDTMtGUEOEFP0RwbVF7CJEno="
+        }
+      ]
+    },
+    {
+      "Route": "js/chat.js",
+      "AssetFile": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/chat.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "5224"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"obXxdFQfAIgGFHlaHXEkVnD+duFs1NXfU4Fuqq25qoM=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 02 Nov 2025 02:16:22 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-obXxdFQfAIgGFHlaHXEkVnD+duFs1NXfU4Fuqq25qoM="
+        }
+      ]
+    },
+    {
+      "Route": "js/chat.t9wh4tm6lp.js",
+      "AssetFile": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/chat.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "5224"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"obXxdFQfAIgGFHlaHXEkVnD+duFs1NXfU4Fuqq25qoM=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 02 Nov 2025 02:16:22 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "t9wh4tm6lp"
+        },
+        {
+          "Name": "label",
+          "Value": "js/chat.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-obXxdFQfAIgGFHlaHXEkVnD+duFs1NXfU4Fuqq25qoM="
+        }
+      ]
+    },
+    {
+      "Route": "js/dashboard.aqcpdgvade.js",
+      "AssetFile": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/dashboard.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1527"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"sumvV+Vpo/9nXX4NN7UBl23cT8NyzsIWOhuwKNPi4CA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 02 Nov 2025 01:59:56 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "aqcpdgvade"
+        },
+        {
+          "Name": "label",
+          "Value": "js/dashboard.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-sumvV+Vpo/9nXX4NN7UBl23cT8NyzsIWOhuwKNPi4CA="
+        }
+      ]
+    },
+    {
+      "Route": "js/dashboard.js",
+      "AssetFile": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/dashboard.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1527"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"sumvV+Vpo/9nXX4NN7UBl23cT8NyzsIWOhuwKNPi4CA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 02 Nov 2025 01:59:56 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-sumvV+Vpo/9nXX4NN7UBl23cT8NyzsIWOhuwKNPi4CA="
+        }
+      ]
     }
   ]
 }

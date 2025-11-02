@@ -584,6 +584,110 @@ html[data-theme="dark"] .tx-row:hover {
     font-style: italic;
 }
 
+/* AI response formatting */
+.ai-summary {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.ai-results-section {
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ai-results-header {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.85rem;
+}
+
+.ai-results-note {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+.ai-results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.ai-results-table thead {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ai-results-table th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ai-results-table td {
+    padding: 0.5rem 0.75rem;
+    color: rgba(255, 255, 255, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ai-results-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ai-results-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ai-sql-section {
+    margin-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 0.75rem;
+}
+
+.ai-sql-summary {
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    user-select: none;
+    padding: 0.25rem 0;
+    transition: color 0.2s;
+}
+
+.ai-sql-summary:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.ai-sql-code {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto;
+    font-size: 0.7rem;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.5;
+}
+
+.ai-sql-code code {
+    display: block;
+    white-space: pre;
+}
+
+.ai-error {
+    color: rgba(255, 150, 150, 0.9);
+    font-style: italic;
+}
+
 .chat-input-row {
     display: flex;
     flex-wrap: nowrap;

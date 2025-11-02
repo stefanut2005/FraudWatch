@@ -82,15 +82,16 @@ def make_bedrock_client():
 
 def query_llm_for_sql(client, model_id: str, user_question: str, schema_description: str) -> str:
     system_msg = (
-        "You are an assistant that returns a single SQL SELECT statement (no explanations). "
-        "Only use the schema provided and produce a valid SQL SELECT query (single statement). "
+        "You are an assistant that returns a single SQL SELECT statement for PostgreSQL (no explanations). "
+        "Only use the schema provided and produce a valid PostgreSQL SQL SELECT query (single statement). "
         "Return the SQL only, in a single code block or plain text. Do not return any non-SQL text. "
-        "Do not use destructive statements (no INSERT/UPDATE/DELETE/ALTER/DROP)."
+        "Do not use destructive statements (no INSERT/UPDATE/DELETE/ALTER/DROP). "
+        "Use proper PostgreSQL syntax. Always quote identifiers if they contain special characters or are reserved words."
     )
 
     user_prompt = (
-        f"Schema:\n{schema_description}\n\nQuestion: {user_question}\n\n"
-        "Produce a single SQL SELECT query that answers the question. Limit results if necessary."
+        f"PostgreSQL Database Schema:\n{schema_description}\n\nQuestion: {user_question}\n\n"
+        "Produce a single PostgreSQL SQL SELECT query that answers the question. Use proper PostgreSQL syntax. Limit results if necessary."
     )
 
     conversation = [
@@ -118,12 +119,28 @@ def describe_schema(engine):
     """)
     try:
         with engine.connect() as conn:
-            rows = conn.execute(q).fetchall()
+            result = conn.execute(q)
+            rows = result.fetchall()
     except Exception as e:
         return ""
 
     schema = {}
-    for table, column, dtype in rows:
+    for row in rows:
+        # Handle both SQLAlchemy 1.x (tuples) and 2.x (Row objects)
+        # Try attribute access first (SQLAlchemy 2.0+ Row objects support this)
+        try:
+            table = row.table_name
+            column = row.column_name
+            dtype = row.data_type
+        except (AttributeError, TypeError):
+            # Fallback to indexing/tuple unpacking (SQLAlchemy 1.x or positional access)
+            try:
+                table, column, dtype = row
+            except (TypeError, ValueError):
+                # Last resort: use indices
+                table = row[0]
+                column = row[1]
+                dtype = row[2]
         schema.setdefault(table, []).append((column, dtype))
     parts = []
     for t, cols in schema.items():
@@ -134,8 +151,8 @@ def describe_schema(engine):
 
 app = FastAPI(title="DB Query via LLM")
 
-# Ensure CORS preflight (OPTIONS) is handled so browsers can POST JSON from the UI.
-# Using a permissive policy for local development; tighten origins in production.
+# Enable CORS so browsers can make cross-origin requests (preflight OPTIONS).
+# This is permissive for local development; narrow `allow_origins` in production.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -185,15 +202,64 @@ def query(req: QueryRequest):
     if not question:
         raise HTTPException(status_code=400, detail="Empty question")
 
-    # 1) get SQL from LLM (if bedrock available)
-    if bedrock_client:
-        try:
-            llm_text = query_llm_for_sql(bedrock_client, model_id, question, schema_description)
-            sql = extract_sql(llm_text)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"LLM error: {e}")
-    else:
+    if not bedrock_client:
         raise HTTPException(status_code=503, detail="LLM/BEDROCK not configured on server")
+
+    # First, check if the question is data-related or just a casual conversation
+    try:
+        is_data_question_prompt = (
+            "You are an assistant that determines if a user's question is about analyzing data from a database, "
+            "or if it's just casual conversation/greeting/off-topic.\n\n"
+            f"User question: {question}\n\n"
+            "Respond with ONLY one word: 'yes' if the question is about analyzing data (e.g., asking about transactions, "
+            "users, fraud, statistics, counts, averages, etc.), or 'no' if it's casual conversation, greetings, "
+            "or unrelated to data analysis."
+        )
+        conv = [{"role": "user", "content": [{"text": is_data_question_prompt}]}]
+        resp_check = bedrock_client.converse(
+            modelId=model_id,
+            messages=conv,
+            inferenceConfig={"maxTokens": 10, "temperature": 0.0},
+        )
+        is_data_related = resp_check['output']['message']['content'][0]['text'].strip().lower().startswith('yes')
+    except Exception:
+        # If check fails, assume it's data-related to maintain backward compatibility
+        is_data_related = True
+
+    # If not data-related, respond friendly without SQL
+    if not is_data_related:
+        try:
+            friendly_prompt = (
+                "You are a friendly and helpful assistant. The user sent you a message. "
+                f"IMPORTANT: Respond in the EXACT same language as the user's message. "
+                f"If the user wrote in Romanian, respond in Romanian. If in English, respond in English, etc. "
+                f"User message: {question}\n\n"
+                "Respond naturally and friendly in the same language. Keep it brief (1-2 sentences). "
+                "If they're greeting you, greet them back in the same language. "
+                "If they're asking something off-topic, be helpful and friendly, but always match their language exactly."
+            )
+            conv_friendly = [{"role": "user", "content": [{"text": friendly_prompt}]}]
+            resp_friendly = bedrock_client.converse(
+                modelId=model_id,
+                messages=conv_friendly,
+                inferenceConfig={"maxTokens": 150, "temperature": 0.7},
+            )
+            friendly_response = resp_friendly['output']['message']['content'][0]['text'].strip()
+            return {"sql": None, "rows": [], "summary": friendly_response}
+        except Exception as e:
+            # Fallback to friendly response if LLM fails
+            return {
+                "sql": None,
+                "rows": [],
+                "summary": "Hello! I'm here to help you analyze your transaction data. Feel free to ask me questions about the database!"
+            }
+
+    # 1) get SQL from LLM (for data-related questions)
+    try:
+        llm_text = query_llm_for_sql(bedrock_client, model_id, question, schema_description)
+        sql = extract_sql(llm_text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LLM error: {e}")
 
     # 2) safety checks
     if not is_safe_select(sql):
@@ -203,7 +269,12 @@ def query(req: QueryRequest):
 
     # 3) execute
     try:
-        df = pd.read_sql_query(sql_limited, engine)
+        # Use text() wrapper and execute via connection for SQLAlchemy 2.0+ compatibility
+        sql_query = text(sql_limited)
+        with engine.connect() as conn:
+            result = conn.execute(sql_query)
+            # Convert result to DataFrame - this handles SQLAlchemy 2.0+ Row objects correctly
+            df = pd.DataFrame(result.fetchall(), columns=result.keys())
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error executing SQL: {e}")
 
@@ -224,12 +295,19 @@ def query(req: QueryRequest):
                 numeric_stats_text = '{}'
 
             summary_prompt = (
-                'You are a helpful assistant. The user asked a question and ran the following SQL query:\n'
-                f'{sql}\n\nHere is a short preview of the query results:\n{preview_text}\n\n'
-                f'Basic numeric statistics (JSON):\n{numeric_stats_text}\n\n'
-                'Produce a concise, human-friendly answer (3-6 sentences) that explains the result in plain language, '
-                'mentions any obvious notable values, and suggests a sensible follow-up if appropriate. '
-                'Return only the natural-language summary (no SQL, no code blocks). Match the language of the user question.'
+                'You are a helpful data analyst assistant. A user asked you a question about the data. '
+                f'IMPORTANT: The user asked their question in this language: "{question}". '
+                'You MUST respond in the EXACT same language as the user\'s question. '
+                'If the user asked in Romanian, respond in Romanian. If in English, respond in English, etc.\n\n'
+                'Here are the results from your analysis:\n\n'
+                f'Data preview:\n{preview_text}\n\n'
+                f'Statistics: {numeric_stats_text}\n\n'
+                'Provide a clear, concise answer (2-4 sentences) that directly answers the user\'s question in simple language. '
+                'Focus on the key findings and numbers. Keep it friendly and conversational. '
+                'IMPORTANT: Do NOT mention SQL, queries, databases, or any technical implementation details. '
+                'Do NOT say things like "SQL executed", "the query", "SELECT", or any database terminology. '
+                'Just explain what the data shows in plain, natural language. '
+                'Return ONLY the natural-language answer in the same language as the user\'s question, with no technical terms.'
             )
             conv = [{"role": "user", "content": [{"text": summary_prompt}]}]
             resp = bedrock_client.converse(modelId=model_id, messages=conv, inferenceConfig={"maxTokens":256, "temperature":0.3})

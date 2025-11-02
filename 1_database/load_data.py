@@ -23,6 +23,9 @@ DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NA
 def normalize_columns(cols):
     return [col.strip().lower().replace(' ', '_') for col in cols]
 
+# --- Funcțiile de mai jos nu mai sunt folosite de `load_data`, 
+# --- dar sunt păstrate dacă vrei să revii la încărcarea completă.
+
 def create_table_schema_from_sample(engine, csv_path, table_name, sample_rows=1000):
     df_sample = pd.read_csv(csv_path, nrows=sample_rows)
     df_sample.columns = normalize_columns(df_sample.columns)
@@ -79,6 +82,7 @@ def pandas_chunked_load(engine, csv_path, table_name, chunk_size=5000):
     print(f"\n✅ FINALIZAT: {total_rows:,} rânduri încărcate în '{table_name}'.")
     print(f"⏱️  Timp total: {elapsed_total:.1f} secunde ({total_rows/elapsed_total:.0f} rânduri/sec)")
 
+# --- AICI ESTE MODIFICAREA ---
 def load_data():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     csv_path = os.path.join(script_dir, CSV_FILENAME)
@@ -101,20 +105,27 @@ def load_data():
         print("Asigură-te că ai rulat 'docker compose up -d' sau 'docker-compose up -d'.")
         return
 
-    print("Începe citirea fișierului CSV...")
-    try:
-        if FAST_LOAD:
-            try:
-                print("Încerc încărcare rapidă (COPY)...")
-                create_table_schema_from_sample(engine, csv_path, TABLE_NAME)
-                copy_csv_to_table(engine, csv_path, TABLE_NAME)
-                print(f"\n✅ COPY FINALIZAT: date încărcate în '{TABLE_NAME}'.")
-                return
-            except Exception as e:
-                print("WARN: COPY a eșuat, se revine la încărcare cu pandas chunked.")
-                traceback.print_exc()
+    # Setează limita de rânduri
+    row_limit = 10000
 
-        pandas_chunked_load(engine, csv_path, TABLE_NAME)
+    print(f"Începe citirea primelor {row_limit} rânduri din fișierul CSV...")
+    try:
+        start_time = time.time()
+        
+        # 1. Citim doar primele 10.000 de rânduri
+        df = pd.read_csv(csv_path, nrows=row_limit)
+        
+        # 2. Normalizăm coloanele
+        df.columns = normalize_columns(df.columns)
+        
+        # 3. Scriem în baza de date, înlocuind tabelul existent
+        print(f"Se scriu {len(df)} rânduri în tabelul '{TABLE_NAME}'...")
+        df.to_sql(TABLE_NAME, engine, if_exists='replace', index=False, method='multi')
+        
+        elapsed = time.time() - start_time
+        print(f"\n✅ FINALIZAT: {len(df):,} rânduri încărcate în '{TABLE_NAME}'.")
+        print(f"⏱️  Timp total: {elapsed:.1f} secunde.")
+
     except Exception as e:
         print(f"\n❌ EROARE la citirea sau scrierea CSV-ului: {e}")
         traceback.print_exc()
