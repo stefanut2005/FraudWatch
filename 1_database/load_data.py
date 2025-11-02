@@ -64,7 +64,7 @@ def copy_csv_to_table(engine, csv_path, table_name):
         except:
             pass
 
-def pandas_chunked_load(engine, csv_path, table_name, chunk_size=5000):
+def pandas_chunked_load(engine, csv_path, table_name, chunk_size=100000):
     start_time = time.time()
     total_rows = 0
     chunk_count = 0
@@ -106,7 +106,7 @@ def load_data():
         return
 
     # Setează limita de rânduri
-    row_limit = 10000
+    row_limit = 100000
 
     print(f"Începe citirea primelor {row_limit} rânduri din fișierul CSV...")
     try:

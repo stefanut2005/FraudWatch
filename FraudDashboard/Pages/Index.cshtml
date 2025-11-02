@@ -9,7 +9,6 @@
 
 <div class="page-inner">
 
-    <!-- Page heading / intro -->
     <div class="card card-tight">
         <div class="card-header" style="margin-bottom:.5rem;">
             <div>
@@ -20,26 +19,21 @@
 
         <div class="kpi-grid">
             <div class="kpi-card">
-                <div class="kpi-label">High Risk (&gt;=80%)</div>
-                <div class="kpi-value">@Model.Transactions.Count(t => t.Risk >= 80)</div>
+                <div class="kpi-label">High Risk (>=80%)</div>
+                <div class="kpi-value">@Model.HighRiskToday</div>
                 <div class="kpi-desc">Needs manual review</div>
             </div>
 
             <div class="kpi-card">
                 <div class="kpi-label">Average Risk</div>
                 <div class="kpi-value">
-                    @(
-                        Model.Transactions.Count == 0
-                        ? 0
-                        : Math.Round(Model.Transactions.Average(t => t.Risk), 1)
-                    )%
+                    @Math.Round(Model.AvgRisk, 1)%
                 </div>
                 <div class="kpi-desc">Across last @Model.Transactions.Count tx</div>
             </div>
         </div>
     </div>
 
-    <!-- Top risky table -->
     <div class="card">
         <div class="card-header">
             <div>
@@ -82,7 +76,94 @@
         </div>
     </div>
 
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Risk Score Distribution</div>
+                <div class="card-subtitle">How fraud scores are distributed</div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div style="width:100%; max-width:600px;">
+                <canvas id="riskHistogramChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const riskHistogramData = [
+            @Html.Raw(string.Join(",", Model.RiskHistogram.Select(bin =>
+                $"{{ score: {bin.ScoreBin.ToString(System.Globalization.CultureInfo.InvariantCulture)}, count: {bin.Count} }}"
+            )))
+        ];
+
+        riskHistogramData.sort((a, b) => a.score - b.score);
+
+        const labels = riskHistogramData.map(p => p.score.toFixed(1));
+        const counts = riskHistogramData.map(p => p.count);
+
+        const barColors = riskHistogramData.map(p => {
+            if (p.score < 0.3) return "rgba(0, 128, 0, 0.6)";
+            if (p.score <= 0.7) return "rgba(255, 165, 0, 0.6)";
+            return "rgba(255, 0, 0, 0.6)";
+        });
+
+        const ctx = document.getElementById('riskHistogramChart').getContext('2d');
+        const riskChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Count',
+                    data: counts,
+                    backgroundColor: barColors,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Risk score (binned @@ 0.1)'
+                        },
+                        ticks: {
+                            autoSkip: true,
+                            maxRotation: 0,
+                            minRotation: 0
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Transactions'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                const scoreLabel = ctx.label;
+                                const cnt = ctx.raw;
+                                return `score ${scoreLabel}: ${cnt} tx`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}
 
 @functions {
     string GetRiskClass(double risk)
@@ -91,6 +172,7 @@
         if (risk >= 40) return "risk-mid";
         return "risk-low";
     }
+
     string GetStatusClass(double risk)
     {
         if (risk >= 80) return "status-high";

@@ -28,15 +28,16 @@
                            oninput="document.getElementById('minRiskVal').innerText=this.value+'%';" />
                 </div>
 
-                <button class="btn-secondary" type="submit">Apply</button>
-
                 <div class="search-control">
                     <span class="search-icon">🔍</span>
                     <input id="txSearch"
+                           name="Query"
+                           value="@Model.Query"
                            class="search-field"
                            placeholder="Search merchant / ID..." />
                 </div>
 
+                <button class="btn-secondary" type="submit">Apply</button>
             </form>
         </div>
 
@@ -47,23 +48,23 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Card</th>
                     <th>Merchant</th>
                     <th>Amount</th>
                     <th>When</th>
+                    <th>Location</th>
                     <th>Risk</th>
                     <th>Status</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var t in Model.Transactions)
-            {
+                {
                 <tr class="tx-row" data-tx-id="@t.Id" onclick="openDetailModal('@t.Id')">
                     <td>@t.Id</td>
-                    <td>**** @t.CardLast4</td>
                     <td>@t.Merchant</td>
                     <td>@t.Amount @t.Currency</td>
                     <td>@t.Timestamp.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@t.Location</td>
                     <td>
                         <span class="risk-chip @GetRiskClass(t.Risk)">
                             @Math.Round(t.Risk,1)%
@@ -75,13 +76,12 @@
                         </span>
                     </td>
                 </tr>
-            }
+                }
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Detail Modal -->
 <div class="modal-overlay" id="detailOverlay" style="display:none" onclick="closeDetailModal(event)">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -93,8 +93,7 @@
         </div>
 
         <div class="modal-body">
-            <div class="modal-row"><span class="label">Card:</span><span class="value" id="detailCard">**** 0000</span></div>
-            <div class="modal-row"><span class="label">Amount:</span><span class="value" id="detailAmount">0 EUR</span></div>
+            <div class="modal-row"><span class="label">Amount:</span><span class="value" id="detailAmount">0 USD</span></div>
             <div class="modal-row"><span class="label">When:</span><span class="value" id="detailWhen">-</span></div>
             <div class="modal-row"><span class="label">Location:</span><span class="value" id="detailLoc">-</span></div>
             <div class="modal-row"><span class="label">Risk:</span><span class="value"><span class="risk-chip" id="detailRisk">--%</span></span></div>
@@ -120,32 +119,18 @@
 
 @section Scripts {
     <script>
-// live search filter
-const txSearch = document.getElementById('txSearch');
-if (txSearch) {
-    txSearch.addEventListener('input', () => {
-        const q = txSearch.value.toLowerCase();
-        document.querySelectorAll('#txTable tbody tr').forEach(row => {
-            const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(q) ? '' : 'none';
-        });
-    });
-}
-
-// dump all tx into JS for modal
 const allTx = [
 @foreach (var t in Model.Transactions)
 {
     <text>{
         id: "@t.Id",
-        card: "**** @t.CardLast4",
         merchant: "@t.Merchant",
         amount: "@t.Amount @t.Currency",
         when: "@t.Timestamp.ToString("yyyy-MM-dd HH:mm")",
         location: "@t.Location",
         risk: @t.Risk.ToString(System.Globalization.CultureInfo.InvariantCulture),
         riskLabel: "@t.RiskLabel",
-        notes: "@t.Notes".Replace("\"","\\\""),
+        notes: "@t.Notes".replace(/"/g,"\\\""),
         features: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(t.Features ?? new Dictionary<string, object>()))
     },</text>
 }
@@ -160,7 +145,6 @@ function openDetailModal(id){
 
     document.getElementById('detailTxId').innerText = tx.id;
     document.getElementById('detailMerchant').innerText = tx.merchant;
-    document.getElementById('detailCard').innerText = tx.card;
     document.getElementById('detailAmount').innerText = tx.amount;
     document.getElementById('detailWhen').innerText = tx.when;
     document.getElementById('detailLoc').innerText = tx.location;
@@ -195,7 +179,6 @@ function statusClass(r){
     return 'status-low';
 }
 
-// Ask AI in modal
 async function askAiWhy(){
     if(!currentTxId) return;
     const q = `de ce tranzactia ${currentTxId} e risc mare?`;

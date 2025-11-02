@@ -28,12 +28,12 @@ except ImportError as e:
     raise
 
 # --- Configurare Conexiune Bază de Date ---
-# Setările trebuie să se potrivească cu fișierele din 1_database
-DB_USER = 'user'
-DB_PASSWORD = 'pass123'
-DB_HOST = 'localhost' # Se conectează la containerul Docker
-DB_PORT = '5432'
-DB_NAME = 'fraud_detection_db'
+DB_USER = os.environ.get("DB_USER", os.environ.get("POSTGRES_USER", "user"))
+DB_PASSWORD = os.environ.get("DB_PASSWORD", os.environ.get("POSTGRES_PASSWORD", "pass123"))
+DB_HOST = os.environ.get("DB_HOST", "localhost")
+DB_PORT = os.environ.get("DB_PORT", "5432")
+DB_NAME = os.environ.get("DB_NAME", os.environ.get("POSTGRES_DB", "fraud_detection_db"))
+
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # --- Inițializare ---

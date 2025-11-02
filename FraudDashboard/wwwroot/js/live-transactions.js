@@ -6,6 +6,23 @@ const UPDATE_INTERVAL = 5000; // 5 seconds
 
 let liveTransactions = [];
 let updateInterval = null;
+// Use the current instant and display times in Romania (Europe/Bucharest).
+// We'll allocate timestamps in milliseconds starting from now (absolute time)
+let nextSyntheticTimestampMs = Date.now();
+
+const bucharestFormatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Bucharest',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false
+});
+
+function formatSyntheticDateFromMs(ms) {
+    const parts = bucharestFormatter.formatToParts(new Date(ms));
+    const map = {};
+    parts.forEach(p => { if (p.type !== 'literal') map[p.type] = p.value; });
+    return `${map.day}/${map.month}/${map.year} ${map.hour}:${map.minute}:${map.second}`;
+}
 
 // Load initial 5 transactions
 async function loadInitialTransactions() {
@@ -29,6 +46,9 @@ async function loadInitialTransactions() {
 // Fetch single transaction and add to table
 async function fetchAndAddTransaction() {
     try {
+        // Reserve a synthetic timestamp immediately so order is deterministic
+        const syntheticMsLocal = nextSyntheticTimestampMs;
+        nextSyntheticTimestampMs += 5000;
         console.log('Fetching transaction from:', LIVE_TX_API);
         const response = await fetch(LIVE_TX_API);
         console.log('Response status:', response.status, response.statusText);
@@ -72,10 +92,13 @@ async function fetchAndAddTransaction() {
         const risk = data.risk || (data.fraud_probability ? data.fraud_probability * 100 : 0);
         const fraudDetected = data.fraud_detected || false;
         
-        // Add to beginning of array
-        liveTransactions.unshift({
+    const syntheticTime = formatSyntheticDateFromMs(syntheticMsLocal);
+
+        // Add to array
+        liveTransactions.push({
             id: tx.id,
-            time: tx.trans_date_trans_time,
+            time: syntheticTime,
+            syntheticMs: syntheticMsLocal,
             merchant: tx.merchant,
             amount: tx.amt,
             category: tx.category,
@@ -83,10 +106,11 @@ async function fetchAndAddTransaction() {
             fraudDetected: fraudDetected,
             raw: tx
         });
-        
-        // Keep only last 5 transactions (most recent first)
+
+        // Sort chronologically by syntheticMs and keep only last 5 (most recent)
+        liveTransactions.sort((a, b) => a.syntheticMs - b.syntheticMs);
         if (liveTransactions.length > 5) {
-            liveTransactions = liveTransactions.slice(0, 5);
+            liveTransactions = liveTransactions.slice(-5);
         }
         
         renderTransactions();

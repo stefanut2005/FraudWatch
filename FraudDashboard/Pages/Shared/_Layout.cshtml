@@ -39,11 +39,15 @@
                     <div class="kpi-bubble">
                         <div class="kpi-mini-card">
                             <div class="kpi-mini-label">High Risk Today</div>
-                            <div class="kpi-mini-value" id="highRiskCount">--</div>
+                            <div class="kpi-mini-value" id="highRiskCount">
+                                @(ViewData["HighRiskToday"] ?? "--")
+                            </div>
                         </div>
                         <div class="kpi-mini-card">
                             <div class="kpi-mini-label">Avg Score</div>
-                            <div class="kpi-mini-value" id="avgRisk">--%</div>
+                            <div class="kpi-mini-value" id="avgRisk">
+                                @(ViewData["AvgRisk"] ?? "--%")
+                            </div>
                         </div>
                         <button id="themeToggle"
                                 class="bubble-toggle"
@@ -83,13 +87,14 @@
     <script src="/js/chat.js"></script>
     <script src="/js/dashboard.js"></script>
     <script>
-    (function(){
-        const saved = localStorage.getItem('fd-theme');
-        if(saved === 'dark'){
-            document.documentElement.setAttribute('data-theme','dark');
-        }
-    })();
+        (function () {
+            const saved = localStorage.getItem('fd-theme');
+            if (saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
     </script>
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>

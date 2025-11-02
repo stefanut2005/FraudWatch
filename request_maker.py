@@ -4,12 +4,16 @@ import random
 import numpy as np
 from datetime import datetime, timedelta
 import pandas as pd
+import os
+import io
+import csv
+from sqlalchemy import create_engine
 
 # Server configuration
 SERVER_URL = "http://127.0.0.1:8000"
 PREDICT_ENDPOINT = f"{SERVER_URL}/predict_fraud"
 
-def generate_random_transaction():
+def generate_random_transaction(save_to_db: bool = True):
     """
     Generate a random transaction in the format expected by the updated MCP server.
     Now optimized for the new Random Forest model with engineered features.
@@ -83,7 +87,93 @@ def generate_random_transaction():
         'id': random.randint(0, 999999)  # Match fraud_test.csv ID format
     }
     
+    # Optionally persist the generated transaction into the database
+    if save_to_db:
+        try:
+            save_transaction_to_db(transaction_data)
+        except Exception as e:
+            print(f"Warning: failed to save generated transaction to DB: {e}")
+
     return transaction_data
+
+
+def save_transaction_to_db(transaction: dict, table_name: str = 'random_tranzactions') -> bool:
+    """Insert a single transaction dict into the Postgres table `random_tranzactions`.
+
+    Reads DB connection settings from environment variables (same defaults as other scripts).
+    Returns True on success, False on failure.
+    """
+    DB_USER = os.environ.get('DB_USER', os.environ.get('POSTGRES_USER', 'user'))
+    DB_PASSWORD = os.environ.get('DB_PASSWORD', os.environ.get('POSTGRES_PASSWORD', 'pass123'))
+    DB_HOST = os.environ.get('DB_HOST', 'localhost')
+    DB_PORT = os.environ.get('DB_PORT', '5432')
+    DB_NAME = os.environ.get('DB_NAME', os.environ.get('POSTGRES_DB', 'fraud_detection_db'))
+
+    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+    try:
+        engine = create_engine(DATABASE_URL)
+
+        # Try fast COPY upload using raw DBAPI connection (psycopg2)
+        try:
+            conn = engine.raw_connection()
+            cur = conn.cursor()
+
+            # Prepare CSV in-memory with header and single row
+            columns = list(transaction.keys())
+            sio = io.StringIO()
+            writer = csv.writer(sio)
+            # write header
+            writer.writerow(columns)
+            # write row values in the same order
+            row = [transaction.get(col, None) for col in columns]
+            # Convert non-string types (e.g., dicts) to JSON strings
+            def normalize_val(v):
+                if v is None:
+                    return ''
+                if isinstance(v, (dict, list)):
+                    return json.dumps(v)
+                return v
+            row = [normalize_val(v) for v in row]
+            writer.writerow(row)
+            sio.seek(0)
+
+            cols_sql = ', '.join([f'"{c}"' for c in columns])
+            sql = f"COPY {table_name} ({cols_sql}) FROM STDIN WITH CSV HEADER"
+            cur.copy_expert(sql, sio)
+            conn.commit()
+            try:
+                cur.close()
+            except Exception:
+                pass
+            try:
+                conn.close()
+            except Exception:
+                pass
+            try:
+                engine.dispose()
+            except Exception:
+                pass
+            return True
+        except Exception as copy_exc:
+            # Fallback to pandas.to_sql if COPY is not available or fails (table may not exist)
+            print(f"COPY upload failed, falling back to pandas.to_sql: {copy_exc}")
+            try:
+                df = pd.DataFrame([transaction])
+                df.columns = [c if isinstance(c, str) else str(c) for c in df.columns]
+                df.to_sql(table_name, engine, if_exists='append', index=False)
+                try:
+                    engine.dispose()
+                except Exception:
+                    pass
+                return True
+            except Exception as e:
+                print(f"Error saving transaction to DB with pandas.to_sql ({table_name}): {e}")
+                return False
+
+    except Exception as e:
+        print(f"Error saving transaction to DB ({table_name}): {e}")
+        return False
 
 def test_predict_fraud_endpoint(num_requests=5):
     """
