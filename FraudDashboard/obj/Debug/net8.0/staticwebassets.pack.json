@@ -1,20 +1,20 @@
 {
   "Files": [
     {
-      "Id": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/css/site.css",
+      "Id": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/css/site.css",
       "PackagePath": "staticwebassets/css/site.css"
     },
     {
-      "Id": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/chat.js",
+      "Id": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/chat.js",
       "PackagePath": "staticwebassets/js/chat.js"
     },
     {
-      "Id": "/home/pia/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/dashboard.js",
+      "Id": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/dashboard.js",
       "PackagePath": "staticwebassets/js/dashboard.js"
     },
     {
-      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.FraudDashboard.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
-      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
+      "Id": "/mnt/c/Users/Stefan/Documents/GitHub/nexxt-ai/FraudDashboard/wwwroot/js/live-transactions.js",
+      "PackagePath": "staticwebassets/js/live-transactions.js"
     },
     {
       "Id": "obj/Debug/net8.0/staticwebassets/msbuild.FraudDashboard.Microsoft.AspNetCore.StaticWebAssets.props",

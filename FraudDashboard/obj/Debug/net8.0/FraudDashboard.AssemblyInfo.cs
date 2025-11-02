@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FraudDashboard")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+532e7b2fc4370bdb880ac3df5aa43afb223191f3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+90a020a8ed9dea3b23b72e76ea1a06c455c6b91c")]
 [assembly: System.Reflection.AssemblyProductAttribute("FraudDashboard")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FraudDashboard")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

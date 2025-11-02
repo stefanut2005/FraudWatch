@@ -1,0 +1,41 @@
+@page
+@model FraudDashboard.Pages.LiveTransactions.IndexModel
+
+<div class="tx-container-card">
+    <div class="tx-container-header-row">
+        <div class="tx-container-left">
+            <div class="tx-container-title">🔴 Live Transactions</div>
+            <div class="tx-container-sub">Real-time fraud detection stream</div>
+        </div>
+        <div class="tx-container-right">
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span id="statusText">Live</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="tx-container-table-wrapper">
+        <table class="tx-table" id="liveTxTable">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>ID</th>
+                    <th>Merchant</th>
+                    <th>Amount</th>
+                    <th>Category</th>
+                    <th>Risk</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="liveTxBody">
+                <!-- Transactions will be inserted here via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="/js/live-transactions.js"></script>
+}
+

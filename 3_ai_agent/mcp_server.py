@@ -7,6 +7,25 @@ import numpy as np
 import pickle
 import tensorflow as tf
 from sklearn.preprocessing import StandardScaler
+import sys
+import os
+from tensorflow import keras
+
+#model = keras.models.load_model("../pkl-files/neural_network_fraud_model.h5")
+#print("===================================")
+#print(model.summary())
+
+# Add path to request_maker.py
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parent_dir)
+try:
+    from request_maker import generate_random_transaction
+    print(f"✅ Successfully imported generate_random_transaction from {parent_dir}/request_maker.py")
+except ImportError as e:
+    print(f"❌ Error importing generate_random_transaction: {e}")
+    print(f"   Parent dir: {parent_dir}")
+    print(f"   Sys.path: {sys.path}")
+    raise
 
 # --- Configurare Conexiune Bază de Date ---
 # Setările trebuie să se potrivească cu fișierele din 1_database
@@ -22,22 +41,22 @@ app = FastAPI()
 try:
     # Load the neural network model
     print("Loading neural network model...")
-    neural_network_model = tf.keras.models.load_model('../neural_network_fraud_model.h5')
+    neural_network_model = tf.keras.models.load_model('../pkl-files/neural_network_fraud_model.h5')
     print("✅ Neural network model loaded successfully")
 
     # Load the feature scaler
-    with open('../nn_scaler.pkl', 'rb') as scaler_file:
+    with open('../pkl-files/nn_scaler.pkl', 'rb') as scaler_file:
         feature_scaler = pickle.load(scaler_file)
     print("✅ Feature scaler loaded successfully")
 
     # Load the optimal threshold for neural network
-    with open('../nn_optimal_threshold.pkl', 'rb') as threshold_file:
+    with open('../pkl-files/nn_optimal_threshold.pkl', 'rb') as threshold_file:
         threshold_data = pickle.load(threshold_file)
         optimal_threshold = threshold_data['optimal_threshold'] if isinstance(threshold_data, dict) else threshold_data
     print(f"✅ Optimal threshold loaded: {optimal_threshold}")
 
     # Load the label encoders (still needed for preprocessing)
-    with open('../label_encoders.pkl', 'rb') as encoders_file:
+    with open('../pkl-files/label_encoders.pkl', 'rb') as encoders_file:
         label_encoders = pickle.load(encoders_file)
     print("✅ Label encoders loaded successfully")
     
@@ -49,16 +68,16 @@ except Exception as e:
     neural_network_model = None
 try:
     # Load the improved Random Forest model
-    with open('pkl-files/improved_rf_model.pkl', 'rb') as model_file:
+    with open('../pkl-files/improved_rf_model.pkl', 'rb') as model_file:
         final_rf_model = pickle.load(model_file)
 
     # Load the optimal threshold
-    with open('pkl-files/optimal_threshold.pkl', 'rb') as threshold_file:
+    with open('../pkl-files/optimal_threshold.pkl', 'rb') as threshold_file:
         threshold_data = pickle.load(threshold_file)
         optimal_threshold = threshold_data['optimal_threshold'] if isinstance(threshold_data, dict) else threshold_data
 
     # Load the label encoders
-    with open('pkl-files/label_encoders.pkl', 'rb') as encoders_file:
+    with open('../pkl-files/label_encoders.pkl', 'rb') as encoders_file:
         label_encoders = pickle.load(encoders_file)
     engine = create_engine(DATABASE_URL)
     print("Server MCP: Conectat cu succes la PostgreSQL.")
@@ -188,6 +207,42 @@ async def predict_fraud(transaction_data: dict) -> dict:
     except Exception as e:
         print(f"Error in predict_fraud: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/generate_and_predict_transaction")
+async def generate_and_predict_transaction():
+    """Generate a random transaction using request_maker.py and get fraud prediction"""
+    try:
+        if neural_network_model is None:
+            raise HTTPException(status_code=500, detail="Neural network model not loaded")
+        
+        # Generate random transaction using function from request_maker.py
+        transaction_data = generate_random_transaction()
+        
+        # Preprocess the data for neural network
+        preprocessed_data = preprocess_transaction_for_nn(transaction_data)
+        
+        # Get prediction probabilities from neural network
+        prediction_proba = neural_network_model.predict(preprocessed_data, verbose=0)
+        fraud_probability = float(prediction_proba[0][0])
+        
+        # Apply optimal threshold
+        prediction = int(fraud_probability >= optimal_threshold)
+        
+        # Return transaction with prediction
+        return {
+            "transaction": transaction_data,
+            "fraud_detected": bool(prediction),
+            "fraud_probability": float(fraud_probability),
+            "threshold_used": float(optimal_threshold),
+            "confidence": float(fraud_probability) if prediction else float(1 - fraud_probability),
+            "risk": float(fraud_probability * 100),  # Convert to percentage
+            "model_type": "neural_network"
+        }
+    except Exception as e:
+        import traceback
+        print(f"Error in generate_and_predict_transaction: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 # --- Endpoint-ul MCP ---
 @app.post("/run_sql")
