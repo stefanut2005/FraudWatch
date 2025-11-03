@@ -2,6 +2,8 @@ fraud_test.csv
 fraud_test.csv
 fraud_test.csv
 .env
+__pycache__
+/db/__pycache__
 
 .vs/
 /1_database/fraud_transactions.csv
